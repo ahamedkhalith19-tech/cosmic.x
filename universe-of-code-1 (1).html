@@ -1,0 +1,2579 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Universe of Code — Every Programming Language, Explored</title>
+<meta name="description" content="An interactive journey through every major programming language — from Assembly to Zig.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/tomorrow-night.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<style>
+/* ============================================================
+   DESIGN TOKENS & CSS CUSTOM PROPERTIES
+   ============================================================ */
+:root {
+  /* Neon Palette */
+  --cyan:    #00F0FF;
+  --purple:  #7B2FBE;
+  --pink:    #FF006E;
+  --cyan-dim: rgba(0,240,255,0.15);
+  --purple-dim: rgba(123,47,190,0.15);
+  --pink-dim: rgba(255,0,110,0.15);
+
+  /* Dark Theme Base */
+  --bg-0: #050508;
+  --bg-1: #0A0A12;
+  --bg-2: #10101E;
+  --bg-3: #18182A;
+  --bg-glass: rgba(16,16,30,0.7);
+  --bg-glass-light: rgba(255,255,255,0.04);
+
+  /* Text */
+  --text-primary: #F0F0FF;
+  --text-secondary: #9090B8;
+  --text-muted: #505080;
+
+  /* Borders */
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(0,240,255,0.25);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --section-pad: clamp(5rem, 10vw, 9rem);
+
+  /* Transitions */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+
+  /* Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple) var(--bg-1);
+}
+
+[data-theme="light"] {
+  --bg-0: #F0F0FF;
+  --bg-1: #E8E8F8;
+  --bg-2: #DDDDEF;
+  --bg-3: #CECEE8;
+  --bg-glass: rgba(240,240,255,0.8);
+  --bg-glass-light: rgba(0,0,0,0.03);
+  --text-primary: #08080F;
+  --text-secondary: #3A3A6A;
+  --text-muted: #7878A8;
+  --border: rgba(0,0,0,0.08);
+  --border-bright: rgba(123,47,190,0.3);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-display);
+  background: var(--bg-0);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: none;
+  transition: background 0.5s var(--ease), color 0.5s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+#cursor-dot, #cursor-ring {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+}
+#cursor-dot {
+  width: 6px; height: 6px;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan);
+  transition: transform 0.1s var(--ease);
+}
+#cursor-ring {
+  width: 32px; height: 32px;
+  border: 1.5px solid var(--cyan);
+  opacity: 0.6;
+  transition: width 0.25s var(--ease), height 0.25s var(--ease), transform 0.12s var(--ease), border-color 0.25s;
+}
+body:has(a:hover) #cursor-ring,
+body:has(button:hover) #cursor-ring,
+body:has(.lang-card:hover) #cursor-ring {
+  width: 48px; height: 48px;
+  border-color: var(--pink);
+  opacity: 0.9;
+}
+
+/* ============================================================
+   SCROLL PROGRESS BAR
+   ============================================================ */
+#scroll-progress {
+  position: fixed; top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink));
+  z-index: 9999;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--purple);
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 900;
+  padding: 1rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(5,5,8,0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.4s;
+}
+.nav-logo {
+  font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;
+  text-decoration: none; letter-spacing: 0.02em;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+  height: 1px; background: var(--cyan);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a:hover::after { transform: scaleX(1); }
+.nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+.btn-theme {
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border);
+  border-radius: 50px; width: 38px; height: 38px;
+  cursor: none; color: var(--text-secondary);
+  font-size: 1rem; display: grid; place-items: center;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.btn-theme:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ============================================================
+   ANIMATED BACKGROUND — CANVAS + GRID
+   ============================================================ */
+#bg-canvas {
+  position: fixed; inset: 0;
+  z-index: -2; opacity: 0.6;
+}
+.bg-grid {
+  position: fixed; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  animation: grid-breathe 8s ease-in-out infinite;
+}
+@keyframes grid-breathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+.bg-orb {
+  position: fixed; border-radius: 50%; filter: blur(80px);
+  z-index: -1; pointer-events: none; animation: orb-float 20s ease-in-out infinite;
+}
+.bg-orb-1 { width: 600px; height: 600px; background: var(--purple-dim); top: -200px; right: -100px; animation-delay: 0s; }
+.bg-orb-2 { width: 500px; height: 500px; background: var(--cyan-dim); bottom: -150px; left: -100px; animation-delay: -7s; }
+.bg-orb-3 { width: 400px; height: 400px; background: var(--pink-dim); top: 40%; left: 50%; animation-delay: -14s; }
+@keyframes orb-float {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(40px,-30px) scale(1.05); }
+  66% { transform: translate(-20px,40px) scale(0.95); }
+}
+
+/* ============================================================
+   GITHUB-STYLE RIBBON
+   ============================================================ */
+.ribbon {
+  position: fixed; top: 20px; right: -40px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+  padding: 6px 60px;
+  transform: rotate(45deg);
+  z-index: 800;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: none;
+}
+
+/* ============================================================
+   SECTIONS — SHARED
+   ============================================================ */
+section {
+  padding: var(--section-pad) clamp(1.5rem, 6vw, 5rem);
+  position: relative;
+}
+.section-eyebrow {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--cyan); margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.section-eyebrow::before {
+  content: ''; display: block; width: 24px; height: 1px; background: var(--cyan);
+}
+.section-title {
+  font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700;
+  letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem;
+}
+.section-sub {
+  color: var(--text-secondary); font-size: 1.05rem; max-width: 560px;
+  line-height: 1.7;
+}
+.grad-text {
+  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: grad-shift 6s ease infinite;
+}
+@keyframes grad-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  text-align: center;
+  padding: 8rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid var(--border-bright);
+  background: var(--cyan-dim);
+  border-radius: 50px; padding: 0.35rem 1rem;
+  font-size: 0.78rem; color: var(--cyan); font-weight: 500; letter-spacing: 0.06em;
+  margin-bottom: 2rem;
+  animation: fade-up 0.8s var(--ease) both;
+}
+.hero-tag .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,240,255,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(0,240,255,0); }
+}
+.hero-title {
+  font-size: clamp(3rem, 9vw, 7rem);
+  font-weight: 700; letter-spacing: -0.04em; line-height: 1.0;
+  margin-bottom: 1.5rem;
+  animation: fade-up 0.8s 0.1s var(--ease) both;
+}
+.hero-typing {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: var(--text-secondary); margin-bottom: 3rem;
+  min-height: 2em;
+  animation: fade-up 0.8s 0.2s var(--ease) both;
+}
+#typed-text { color: var(--cyan); font-family: var(--font-mono); }
+#typed-cursor {
+  display: inline-block; width: 2px; height: 1.1em;
+  background: var(--cyan); vertical-align: middle;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.hero-cta-row {
+  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  animation: fade-up 0.8s 0.3s var(--ease) both;
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 2rem; border-radius: 50px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  color: #fff; font-weight: 600; font-size: 0.9rem; font-family: var(--font-display);
+  border: none; cursor: none; text-decoration: none;
+  box-shadow: 0 0 24px rgba(0,240,255,0.3);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,240,255,0.5); }
+.btn-primary:hover::after { opacity: 1; }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 2rem; border-radius: 50px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg-glass-light);
+  color: var(--text-primary); font-weight: 500; font-size: 0.9rem; font-family: var(--font-display);
+  cursor: none; text-decoration: none; backdrop-filter: blur(8px);
+  transition: border-color 0.2s, transform 0.2s var(--ease), background 0.2s;
+}
+.btn-outline:hover { border-color: var(--cyan); background: var(--cyan-dim); transform: translateY(-2px); }
+
+.hero-stats {
+  display: flex; gap: 3rem; margin-top: 5rem; flex-wrap: wrap; justify-content: center;
+  animation: fade-up 0.8s 0.4s var(--ease) both;
+}
+.hero-stat-item { text-align: center; }
+.hero-stat-num {
+  font-size: 2rem; font-weight: 700; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+.hero-scroll-hint {
+  position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  animation: fade-up 1s 0.8s var(--ease) both;
+}
+.scroll-line {
+  width: 1px; height: 50px;
+  background: linear-gradient(to bottom, var(--cyan), transparent);
+  animation: scroll-line 2s ease-in-out infinite;
+}
+@keyframes scroll-line {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   LANGUAGE GRID
+   ============================================================ */
+#languages { background: var(--bg-1); }
+.filter-bar {
+  display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+  margin-bottom: 2.5rem;
+}
+.filter-search {
+  flex: 1; min-width: 220px;
+  background: var(--bg-glass-light); border: 1px solid var(--border);
+  border-radius: 50px; padding: 0.6rem 1.25rem;
+  color: var(--text-primary); font-family: var(--font-display); font-size: 0.875rem;
+  outline: none; transition: border-color 0.2s;
+  backdrop-filter: blur(8px);
+}
+.filter-search::placeholder { color: var(--text-muted); }
+.filter-search:focus { border-color: var(--cyan); }
+.filter-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.filter-pill {
+  padding: 0.45rem 1rem; border-radius: 50px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-secondary); font-family: var(--font-display); font-size: 0.78rem; font-weight: 500;
+  cursor: none; transition: all 0.2s var(--ease);
+}
+.filter-pill:hover, .filter-pill.active {
+  border-color: var(--cyan); background: var(--cyan-dim); color: var(--cyan);
+}
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 1.25rem;
+}
+.lang-card {
+  position: relative; border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  overflow: hidden; cursor: none;
+  transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s;
+}
+.lang-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--cyan-dim), transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.lang-card:hover { transform: translateY(-6px); border-color: var(--border-bright); }
+.lang-card:hover::before { opacity: 1; }
+.lang-card:hover { box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,240,255,0.08); }
+
+.lang-card-front { padding: 1.5rem; }
+.lang-icon {
+  font-size: 2.2rem; margin-bottom: 1rem; display: block;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+.lang-name { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem; }
+.lang-paradigm {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--purple); margin-bottom: 0.75rem;
+}
+.lang-use { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; }
+.lang-difficulty {
+  display: flex; gap: 3px; align-items: center;
+}
+.diff-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.diff-dot.filled { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
+.lang-difficulty-label { font-size: 0.7rem; color: var(--text-muted); margin-left: 0.5rem; }
+
+.lang-code-preview {
+  position: absolute; inset: 0;
+  background: rgba(5,5,8,0.97);
+  padding: 1.25rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s var(--ease);
+  overflow: hidden;
+}
+.lang-card:hover .lang-code-preview { opacity: 1; pointer-events: auto; }
+.lang-code-preview pre {
+  font-size: 0.72rem; overflow: hidden; height: 100%;
+  border-radius: 8px;
+}
+.lang-card-tag {
+  position: absolute; top: 1rem; right: 1rem;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 0.25rem 0.6rem; border-radius: 50px;
+  background: var(--purple-dim); color: var(--purple);
+  border: 1px solid rgba(123,47,190,0.3);
+}
+
+/* ============================================================
+   CODE COMPARISON — FIBONACCI CAROUSEL
+   ============================================================ */
+#comparison { background: var(--bg-0); }
+.fib-carousel-wrap {
+  position: relative; overflow: hidden; margin-top: 3rem;
+}
+.fib-carousel {
+  display: flex; gap: 1.5rem;
+  overflow-x: auto; padding-bottom: 1.5rem;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: var(--purple) transparent;
+}
+.fib-carousel::-webkit-scrollbar { height: 4px; }
+.fib-carousel::-webkit-scrollbar-track { background: transparent; }
+.fib-carousel::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; }
+.fib-card {
+  flex: 0 0 340px; scroll-snap-align: start;
+  border-radius: 16px; border: 1px solid var(--border);
+  background: var(--bg-2); overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.fib-card:hover { border-color: var(--purple); transform: translateY(-4px); }
+.fib-card-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-3); border-bottom: 1px solid var(--border);
+}
+.fib-card-header .dots { display: flex; gap: 5px; }
+.fib-card-header .dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.dot-r { background: #FF5F57; }
+.dot-y { background: #FEBC2E; }
+.dot-g { background: #28C840; }
+.fib-lang-badge {
+  font-size: 0.78rem; font-weight: 700; font-family: var(--font-mono);
+  color: var(--cyan);
+}
+.fib-card pre {
+  padding: 1.25rem; font-size: 0.78rem; overflow-x: auto; margin: 0;
+  max-height: 300px;
+  background: #1a1a2e !important;
+}
+.fib-card code {
+  font-family: var(--font-mono);
+  color: #c8c8e8;
+  white-space: pre;
+}
+/* Fallback colours when hljs doesn't load */
+.fib-card pre:not(.hljs) code { color: #a0e0ff; }
+.carousel-nav {
+  display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.5rem;
+}
+.carousel-btn {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--bg-glass-light); color: var(--text-secondary);
+  font-size: 1rem; cursor: none;
+  display: grid; place-items: center;
+  transition: border-color 0.2s, color 0.2s;
+  backdrop-filter: blur(8px);
+}
+.carousel-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+#timeline { background: var(--bg-1); overflow: hidden; }
+.timeline-track {
+  position: relative; margin-top: 4rem;
+  padding-left: clamp(1rem, 4vw, 3rem);
+}
+.timeline-track::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--cyan), var(--purple), var(--pink), transparent);
+}
+.tl-item {
+  position: relative; padding-left: 2.5rem; margin-bottom: 3rem;
+  opacity: 0; transform: translateX(-20px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.tl-item.visible { opacity: 1; transform: translateX(0); }
+.tl-dot {
+  position: absolute; left: -7px; top: 4px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg-0); border: 2px solid var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  transition: transform 0.3s;
+}
+.tl-item:hover .tl-dot { transform: scale(1.4); }
+.tl-year {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--cyan); margin-bottom: 0.25rem;
+}
+.tl-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+.tl-desc { font-size: 0.85rem; color: var(--text-secondary); max-width: 600px; line-height: 1.6; }
+
+/* ============================================================
+   STATS
+   ============================================================ */
+#stats {
+  background: var(--bg-0);
+  text-align: center;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem; margin-top: 3.5rem;
+}
+.stat-card {
+  border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg-glass); backdrop-filter: blur(16px);
+  padding: 2.5rem 1.5rem;
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+  position: relative; overflow: hidden;
+}
+.stat-card::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 60%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.stat-card:hover { border-color: var(--cyan-dim); transform: translateY(-4px); }
+.stat-number {
+  font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 700; letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+}
+.stat-suffix { font-size: 1.5rem; }
+.stat-label { margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem; font-weight: 500; }
+.stat-sublabel { margin-top: 0.25rem; color: var(--text-muted); font-size: 0.75rem; }
+
+/* ============================================================
+   TERMINAL
+   ============================================================ */
+#terminal-section { background: var(--bg-1); }
+.terminal-window {
+  max-width: 700px; margin: 3rem auto 0;
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+}
+.terminal-titlebar {
+  background: var(--bg-3); padding: 0.75rem 1.25rem;
+  display: flex; align-items: center; gap: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.terminal-titlebar .dots { display: flex; gap: 6px; }
+.terminal-titlebar .dots span { width: 12px; height: 12px; border-radius: 50%; }
+.terminal-title { font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono); flex: 1; text-align: center; }
+.terminal-body {
+  background: rgba(3,3,6,0.98); padding: 1.5rem;
+  min-height: 320px; max-height: 400px; overflow-y: auto;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.8;
+}
+.term-line { margin-bottom: 0.25rem; }
+.term-prompt { color: var(--cyan); }
+.term-cmd { color: var(--text-primary); }
+.term-output { color: var(--text-secondary); white-space: pre-wrap; }
+.term-output.success { color: #28C840; }
+.term-output.error { color: var(--pink); }
+.term-output.info { color: var(--cyan); }
+.term-output.warn { color: #FEBC2E; }
+.terminal-input-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+  background: rgba(3,3,6,0.98);
+}
+.terminal-input-row .term-prompt { flex-shrink: 0; font-family: var(--font-mono); font-size: 0.82rem; color: var(--cyan); }
+.terminal-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text-primary); font-family: var(--font-mono); font-size: 0.82rem;
+  caret-color: var(--cyan);
+}
+
+/* ============================================================
+   TECH STACK
+   ============================================================ */
+#stack { background: var(--bg-0); }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem; margin-top: 3.5rem;
+}
+.stack-category {
+  border-radius: 16px; border: 1px solid var(--border);
+  background: var(--bg-glass); backdrop-filter: blur(16px);
+  padding: 1.75rem; overflow: hidden; position: relative;
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+}
+.stack-category:hover { border-color: var(--border-bright); transform: translateY(-4px); }
+.stack-cat-icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+.stack-cat-name { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--cyan); margin-bottom: 0.5rem; }
+.stack-cat-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+.stack-langs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.stack-lang-tag {
+  font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 50px;
+  border: 1px solid var(--border); color: var(--text-secondary);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.stack-lang-tag:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+#testimonials { background: var(--bg-1); }
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 1.5rem; margin-top: 3.5rem;
+}
+.testi-card {
+  border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg-glass); backdrop-filter: blur(16px);
+  padding: 2rem;
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+  position: relative;
+}
+.testi-card:hover { border-color: var(--border-bright); transform: translateY(-4px); }
+.testi-quote { font-size: 2.5rem; color: var(--cyan); line-height: 1; margin-bottom: 0.75rem; }
+.testi-text { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; font-style: italic; }
+.testi-author { display: flex; align-items: center; gap: 0.75rem; }
+.testi-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: grid; place-items: center; font-weight: 700; font-size: 1rem;
+  color: white; flex-shrink: 0;
+}
+.testi-name { font-size: 0.875rem; font-weight: 600; }
+.testi-role { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ============================================================
+   BLOG
+   ============================================================ */
+#blog { background: var(--bg-0); }
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 1.5rem; margin-top: 3.5rem;
+}
+.blog-card {
+  border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg-glass); backdrop-filter: blur(16px);
+  overflow: hidden; cursor: none;
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+}
+.blog-card:hover { border-color: var(--border-bright); transform: translateY(-6px); }
+.blog-banner {
+  height: 140px; display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; position: relative; overflow: hidden;
+}
+.blog-banner-1 { background: linear-gradient(135deg, rgba(0,240,255,0.15), rgba(123,47,190,0.2)); }
+.blog-banner-2 { background: linear-gradient(135deg, rgba(123,47,190,0.15), rgba(255,0,110,0.2)); }
+.blog-banner-3 { background: linear-gradient(135deg, rgba(255,0,110,0.1), rgba(0,240,255,0.2)); }
+.blog-content { padding: 1.5rem; }
+.blog-tag {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--purple); margin-bottom: 0.5rem;
+}
+.blog-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3; }
+.blog-desc { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem; }
+.blog-meta { font-size: 0.72rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center; }
+.blog-read-time::before { content: '⏱ '; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  background: var(--bg-1);
+  position: relative; overflow: hidden;
+}
+.footer-wave {
+  position: absolute; top: -1px; left: 0; right: 0;
+  line-height: 0;
+}
+.footer-wave svg { width: 100%; height: 80px; }
+.footer-inner {
+  padding: 5rem clamp(1.5rem, 6vw, 5rem) 3rem;
+  position: relative; z-index: 1;
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 3rem; align-items: start; margin-bottom: 3rem;
+}
+.footer-brand .logo-text {
+  font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.footer-brand p { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; max-width: 260px; line-height: 1.6; }
+.footer-col h4 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1rem; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.footer-col ul a { color: var(--text-muted); font-size: 0.85rem; text-decoration: none; transition: color 0.2s; cursor: none; }
+.footer-col ul a:hover { color: var(--cyan); }
+.newsletter { margin-bottom: 3rem; padding: 2rem; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-glass-light); }
+.newsletter h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+.newsletter p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem; }
+.newsletter-form { display: flex; gap: 0.75rem; max-width: 480px; }
+.newsletter-input {
+  flex: 1; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 50px;
+  padding: 0.65rem 1.25rem; color: var(--text-primary); font-family: var(--font-display); font-size: 0.875rem;
+  outline: none; transition: border-color 0.2s;
+}
+.newsletter-input::placeholder { color: var(--text-muted); }
+.newsletter-input:focus { border-color: var(--cyan); }
+.footer-bottom {
+  border-top: 1px solid var(--border); padding-top: 2rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: gap;
+  gap: 1rem;
+}
+.footer-copy { font-size: 0.8rem; color: var(--text-muted); }
+.social-links { display: flex; gap: 0.75rem; }
+.social-link {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  display: grid; place-items: center; cursor: none;
+  color: var(--text-secondary); font-size: 0.85rem; text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.social-link:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(3,3,6,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s var(--ease);
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--bg-2); border: 1px solid var(--border-bright);
+  border-radius: 24px; padding: 2.5rem;
+  max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto;
+  position: relative;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.3s var(--ease);
+}
+.modal-overlay.open .modal { transform: translateY(0) scale(1); }
+.modal-close {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--bg-glass-light);
+  color: var(--text-secondary); font-size: 1rem; cursor: none;
+  display: grid; place-items: center; transition: all 0.2s;
+}
+.modal-close:hover { border-color: var(--pink); color: var(--pink); }
+.modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+.modal-title { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
+.modal-paradigm { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--purple); margin-bottom: 1.25rem; }
+.modal-section { margin-bottom: 1.5rem; }
+.modal-section h4 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--cyan); margin-bottom: 0.5rem; }
+.modal-section p { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.7; }
+.modal-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.modal-tag {
+  font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 50px;
+  border: 1px solid var(--border); color: var(--text-secondary); font-weight: 500;
+}
+.modal-hello pre { border-radius: 12px; overflow: hidden; }
+.modal-hello code { font-size: 0.82rem; }
+
+/* ============================================================
+   FAB — BACK TO TOP
+   ============================================================ */
+#fab {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 800;
+  width: 52px; height: 52px;
+  display: grid; place-items: center;
+  border-radius: 50%; cursor: none;
+  border: none; background: transparent;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s var(--ease);
+}
+#fab.visible { opacity: 1; transform: translateY(0); }
+#fab svg { position: absolute; top: 0; left: 0; width: 52px; height: 52px; transform: rotate(-90deg); }
+#fab circle.track { fill: none; stroke: var(--border); stroke-width: 2; }
+#fab circle.prog {
+  fill: none; stroke: url(#fab-grad); stroke-width: 2;
+  stroke-dasharray: 144; stroke-dashoffset: 144;
+  stroke-linecap: round; transition: stroke-dashoffset 0.2s;
+}
+#fab .fab-inner {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  display: grid; place-items: center; font-size: 1rem; color: white;
+  box-shadow: 0 4px 16px rgba(0,240,255,0.3);
+  transition: transform 0.2s var(--ease);
+}
+#fab:hover .fab-inner { transform: scale(1.1); }
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.hidden { display: none !important; }
+[data-observe] { opacity: 0; transform: translateY(30px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+[data-observe].visible { opacity: 1; transform: translateY(0); }
+[data-observe][data-delay="1"] { transition-delay: 0.1s; }
+[data-observe][data-delay="2"] { transition-delay: 0.2s; }
+[data-observe][data-delay="3"] { transition-delay: 0.3s; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .footer-top { grid-template-columns: 1fr 1fr; }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .footer-top { grid-template-columns: 1fr; }
+  .testi-grid, .blog-grid { grid-template-columns: 1fr; }
+  #cursor-dot, #cursor-ring { display: none; }
+  body { cursor: auto; }
+  .btn-primary, .btn-outline { cursor: pointer; }
+  .lang-card, .filter-pill, .btn-theme, .carousel-btn, .modal-close, .fab, .social-link { cursor: pointer; }
+}
+@media (min-width: 1600px) {
+  .lang-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+}
+
+/* Light mode overrides for code blocks */
+[data-theme="light"] .fib-card { border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .terminal-body { background: rgba(240,240,255,0.95); }
+[data-theme="light"] .terminal-body .term-output { color: #3A3A6A; }
+[data-theme="light"] .terminal-body .term-cmd { color: #08080F; }
+[data-theme="light"] .terminal-input-row { background: rgba(240,240,255,0.95); }
+[data-theme="light"] .terminal-input { color: #08080F; }
+[data-theme="light"] .lang-code-preview { background: rgba(240,240,255,0.98); }
+</style>
+</head>
+<body>
+
+<!-- Scroll progress bar -->
+<div id="scroll-progress" aria-hidden="true"></div>
+
+<!-- Custom cursor -->
+<div id="cursor-dot" aria-hidden="true"></div>
+<div id="cursor-ring" aria-hidden="true"></div>
+
+<!-- Background -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-3" aria-hidden="true"></div>
+
+<!-- GitHub-style ribbon -->
+<a href="#" class="ribbon" aria-label="View on GitHub">GitHub</a>
+
+<!-- FAB back to top -->
+<button id="fab" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 52 52" aria-hidden="true">
+    <defs>
+      <linearGradient id="fab-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00F0FF"/>
+        <stop offset="100%" stop-color="#7B2FBE"/>
+      </linearGradient>
+    </defs>
+    <circle class="track" cx="26" cy="26" r="23"/>
+    <circle class="prog" cx="26" cy="26" r="23"/>
+  </svg>
+  <span class="fab-inner" aria-hidden="true">↑</span>
+</button>
+
+<!-- Language Detail Modal -->
+<div class="modal-overlay" id="lang-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
+    <div class="modal-icon" id="modal-icon">⚡</div>
+    <h2 class="modal-title" id="modal-title">Language</h2>
+    <p class="modal-paradigm" id="modal-paradigm">Paradigm</p>
+    <div class="modal-section">
+      <h4>History</h4>
+      <p id="modal-history">—</p>
+    </div>
+    <div class="modal-section">
+      <h4>Creator</h4>
+      <p id="modal-creator">—</p>
+    </div>
+    <div class="modal-section">
+      <h4>Key Features</h4>
+      <div class="modal-tags" id="modal-features"></div>
+    </div>
+    <div class="modal-section">
+      <h4>Use Cases</h4>
+      <p id="modal-usecases">—</p>
+    </div>
+    <div class="modal-section modal-hello">
+      <h4>Hello, World!</h4>
+      <pre><code id="modal-hello-code">—</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     NAV
+     ============================================================ -->
+<nav aria-label="Main navigation">
+  <a href="#hero" class="nav-logo">⟨ Universe of Code /⟩</a>
+  <ul class="nav-links">
+    <li><a href="#languages">Languages</a></li>
+    <li><a href="#comparison">Fibonacci</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#terminal-section">Terminal</a></li>
+    <li><a href="#blog">Blog</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="btn-theme" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">🌙</button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section id="hero" aria-label="Hero">
+  <div class="hero-tag"><span class="dot"></span> Est. 1952 — Present</div>
+  <h1 class="hero-title">The <span class="grad-text">Universe</span><br>of Code</h1>
+  <p class="hero-typing">
+    Every language ever built to speak to machines —
+    <span id="typed-text"></span><span id="typed-cursor" aria-hidden="true"></span>
+  </p>
+  <div class="hero-cta-row">
+    <a href="#languages" class="btn-primary">Explore Languages ↓</a>
+    <a href="#comparison" class="btn-outline">Compare Fibonacci</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">700+</div>
+      <div class="hero-stat-label">Languages Created</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">73yr</div>
+      <div class="hero-stat-label">Of History</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">30M+</div>
+      <div class="hero-stat-label">Active Developers</div>
+    </div>
+    <div class="hero-stat-item">
+      <div class="hero-stat-num">∞</div>
+      <div class="hero-stat-label">Possibilities</div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint" aria-hidden="true">
+    <span>Scroll to explore</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     LANGUAGE GRID
+     ============================================================ -->
+<section id="languages" aria-label="Programming Languages">
+  <p class="section-eyebrow">The Collection</p>
+  <h2 class="section-title">Every <span class="grad-text">Language</span>, Explored</h2>
+  <p class="section-sub">Hover any card for a live code preview. Click to unlock full details.</p>
+
+  <div class="filter-bar" role="search" aria-label="Filter languages">
+    <input
+      type="search" class="filter-search" id="lang-search"
+      placeholder="Search languages..." aria-label="Search languages"
+    >
+    <div class="filter-pills" role="group" aria-label="Filter by paradigm">
+      <button class="filter-pill active" data-filter="all" aria-pressed="true">All</button>
+      <button class="filter-pill" data-filter="oop" aria-pressed="false">OOP</button>
+      <button class="filter-pill" data-filter="functional" aria-pressed="false">Functional</button>
+      <button class="filter-pill" data-filter="procedural" aria-pressed="false">Procedural</button>
+      <button class="filter-pill" data-filter="systems" aria-pressed="false">Systems</button>
+      <button class="filter-pill" data-filter="scripting" aria-pressed="false">Scripting</button>
+      <button class="filter-pill" data-filter="logic" aria-pressed="false">Logic</button>
+    </div>
+  </div>
+
+  <div class="lang-grid" id="lang-grid" role="list" aria-label="Programming languages grid">
+    <!-- Populated by JS -->
+  </div>
+</section>
+
+<!-- ============================================================
+     FIBONACCI COMPARISON
+     ============================================================ -->
+<section id="comparison" aria-label="Fibonacci code comparison">
+  <p class="section-eyebrow">Code Comparison</p>
+  <h2 class="section-title">One Algorithm.<br><span class="grad-text">Many Voices.</span></h2>
+  <p class="section-sub">The Fibonacci sequence — the same logic, expressed across 18 languages.</p>
+
+  <div class="fib-carousel-wrap">
+    <div class="fib-carousel" id="fib-carousel" role="list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  <div class="carousel-nav" aria-label="Carousel navigation">
+    <button class="carousel-btn" id="carousel-prev" aria-label="Previous">←</button>
+    <button class="carousel-btn" id="carousel-next" aria-label="Next">→</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     TIMELINE
+     ============================================================ -->
+<section id="timeline" aria-label="History of programming languages">
+  <p class="section-eyebrow">History</p>
+  <h2 class="section-title">From <span class="grad-text">Tubes</span> to AI</h2>
+  <p class="section-sub">Seven decades of languages that shaped the digital world.</p>
+
+  <div class="timeline-track" id="timeline-track">
+    <!-- Populated by JS -->
+  </div>
+</section>
+
+<!-- ============================================================
+     STATS
+     ============================================================ -->
+<section id="stats" aria-label="Programming statistics">
+  <p class="section-eyebrow" style="justify-content:center">By the Numbers</p>
+  <h2 class="section-title" style="text-align:center">Code,<br><span class="grad-text">Quantified</span></h2>
+  <div class="stats-grid" data-observe>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter" data-target="700">0</span><span class="stat-suffix">+</span></div>
+      <div class="stat-label">Programming Languages</div>
+      <div class="stat-sublabel">Ever created by humans</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter" data-target="30">0</span><span class="stat-suffix">M+</span></div>
+      <div class="stat-label">Active Developers</div>
+      <div class="stat-sublabel">Worldwide in 2025</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter" data-target="111">0</span><span class="stat-suffix">B+</span></div>
+      <div class="stat-label">Lines of Code</div>
+      <div class="stat-sublabel">Written today (est.)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number"><span class="counter" data-target="1952">0</span></div>
+      <div class="stat-label">First High-Level Language</div>
+      <div class="stat-sublabel">AUTOCODE, Manchester</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TERMINAL
+     ============================================================ -->
+<section id="terminal-section" aria-label="Interactive terminal">
+  <p class="section-eyebrow">Interactive</p>
+  <h2 class="section-title" style="max-width:480px">The <span class="grad-text">Terminal</span></h2>
+  <p class="section-sub">Type <code style="color:var(--cyan);font-family:var(--font-mono)">help</code> to get started.</p>
+
+  <div class="terminal-window" role="application" aria-label="Fake terminal simulator">
+    <div class="terminal-titlebar">
+      <div class="dots">
+        <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+      </div>
+      <span class="terminal-title">universe-of-code — bash — 80×24</span>
+    </div>
+    <div class="terminal-body" id="terminal-body" role="log" aria-live="polite" aria-label="Terminal output"></div>
+    <div class="terminal-input-row">
+      <span class="term-prompt" aria-hidden="true">visitor@universe:~$</span>
+      <input
+        type="text" class="terminal-input" id="terminal-input"
+        placeholder="type a command..." autocomplete="off" spellcheck="false"
+        aria-label="Terminal command input"
+      >
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TECH STACK
+     ============================================================ -->
+<section id="stack" aria-label="Technology stack showcase">
+  <p class="section-eyebrow">Full Stack</p>
+  <h2 class="section-title">Languages by <span class="grad-text">Domain</span></h2>
+  <p class="section-sub">Every layer of modern software has its own language ecosystem.</p>
+
+  <div class="stack-grid" data-observe>
+    <div class="stack-category">
+      <div class="stack-cat-icon">🖥️</div>
+      <div class="stack-cat-name">Frontend</div>
+      <div class="stack-cat-title">The Web's Face</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">HTML/CSS</span><span class="stack-lang-tag">JavaScript</span>
+        <span class="stack-lang-tag">TypeScript</span><span class="stack-lang-tag">Dart</span>
+        <span class="stack-lang-tag">Elm</span><span class="stack-lang-tag">ClojureScript</span>
+        <span class="stack-lang-tag">WebAssembly</span>
+      </div>
+    </div>
+    <div class="stack-category">
+      <div class="stack-cat-icon">⚙️</div>
+      <div class="stack-cat-name">Backend</div>
+      <div class="stack-cat-title">The Engine Room</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">Python</span><span class="stack-lang-tag">Go</span>
+        <span class="stack-lang-tag">Rust</span><span class="stack-lang-tag">Java</span>
+        <span class="stack-lang-tag">C#</span><span class="stack-lang-tag">Node.js</span>
+        <span class="stack-lang-tag">Ruby</span><span class="stack-lang-tag">PHP</span>
+        <span class="stack-lang-tag">Elixir</span><span class="stack-lang-tag">Scala</span>
+      </div>
+    </div>
+    <div class="stack-category">
+      <div class="stack-cat-icon">🗄️</div>
+      <div class="stack-cat-name">Data & DB</div>
+      <div class="stack-cat-title">The Memory</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">SQL</span><span class="stack-lang-tag">R</span>
+        <span class="stack-lang-tag">Python</span><span class="stack-lang-tag">Julia</span>
+        <span class="stack-lang-tag">MATLAB</span><span class="stack-lang-tag">Prolog</span>
+        <span class="stack-lang-tag">HiveQL</span>
+      </div>
+    </div>
+    <div class="stack-category">
+      <div class="stack-cat-icon">🐚</div>
+      <div class="stack-cat-name">DevOps</div>
+      <div class="stack-cat-title">The Pipeline</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">Bash</span><span class="stack-lang-tag">Python</span>
+        <span class="stack-lang-tag">Go</span><span class="stack-lang-tag">HCL</span>
+        <span class="stack-lang-tag">YAML</span><span class="stack-lang-tag">Groovy</span>
+        <span class="stack-lang-tag">PowerShell</span>
+      </div>
+    </div>
+    <div class="stack-category">
+      <div class="stack-cat-icon">🤖</div>
+      <div class="stack-cat-name">AI / ML</div>
+      <div class="stack-cat-title">The Intelligence</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">Python</span><span class="stack-lang-tag">R</span>
+        <span class="stack-lang-tag">Julia</span><span class="stack-lang-tag">C++</span>
+        <span class="stack-lang-tag">CUDA</span><span class="stack-lang-tag">Swift</span>
+        <span class="stack-lang-tag">Mojo</span>
+      </div>
+    </div>
+    <div class="stack-category">
+      <div class="stack-cat-icon">🔩</div>
+      <div class="stack-cat-name">Systems</div>
+      <div class="stack-cat-title">The Foundation</div>
+      <div class="stack-langs">
+        <span class="stack-lang-tag">C</span><span class="stack-lang-tag">C++</span>
+        <span class="stack-lang-tag">Rust</span><span class="stack-lang-tag">Assembly</span>
+        <span class="stack-lang-tag">Zig</span><span class="stack-lang-tag">Ada</span>
+        <span class="stack-lang-tag">D</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TESTIMONIALS
+     ============================================================ -->
+<section id="testimonials" aria-label="Developer testimonials">
+  <p class="section-eyebrow">Community Voices</p>
+  <h2 class="section-title">What Great<br><span class="grad-text">Minds</span> Said</h2>
+  <div class="testi-grid" data-observe>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">A language that doesn't affect the way you think about programming is not worth knowing. Each new language reshapes the mind that learns it.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">AJP</div>
+        <div>
+          <div class="testi-name">Alan J. Perlis</div>
+          <div class="testi-role">First Turing Award Winner, 1966</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">The most important property of a program is whether it accomplishes the intention of its user. Correctness, efficiency, and elegance follow from clarity of thought.</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,var(--pink),var(--purple))">GH</div>
+        <div>
+          <div class="testi-name">Grace Hopper</div>
+          <div class="testi-role">Inventor of the first compiler, 1952</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">C is quirky, flawed, and an enormous success. Rust is what C would have been had it been designed with safety in mind from the start.</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,var(--cyan),var(--pink))">BR</div>
+        <div>
+          <div class="testi-name">Bjarne & the Rustaceans</div>
+          <div class="testi-role">C++ creator & Rust community</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">Python is an experiment in how much freedom programmers need. Too much freedom and nobody can read anyone else's code. Too little and expressive power is lost.</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,var(--purple),var(--cyan))">GvR</div>
+        <div>
+          <div class="testi-name">Guido van Rossum</div>
+          <div class="testi-role">Creator of Python</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">JavaScript is the world's most misunderstood programming language. It has more in common with Lisp and Scheme than with C or Java. It is Lisp in C's clothing.</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#FEBC2E,var(--pink))">DC</div>
+        <div>
+          <div class="testi-name">Douglas Crockford</div>
+          <div class="testi-role">JavaScript: The Good Parts</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <p class="testi-text">There are only two kinds of programming languages: those people always complain about and those nobody uses. Great languages earn their complaints.</p>
+      <div class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,var(--pink),#FEBC2E)">BS</div>
+        <div>
+          <div class="testi-name">Bjarne Stroustrup</div>
+          <div class="testi-role">Creator of C++</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BLOG
+     ============================================================ -->
+<section id="blog" aria-label="Blog previews">
+  <p class="section-eyebrow">Trends</p>
+  <h2 class="section-title">The <span class="grad-text">Frontier</span></h2>
+  <p class="section-sub">What's next in the universe of programming languages.</p>
+
+  <div class="blog-grid" data-observe>
+    <article class="blog-card">
+      <div class="blog-banner blog-banner-1">🤖</div>
+      <div class="blog-content">
+        <p class="blog-tag">AI & Coding</p>
+        <h3 class="blog-title">LLMs Are Writing 40% of New Code — What Does That Mean for Languages?</h3>
+        <p class="blog-desc">As AI coding assistants become mainstream, the distribution of languages used shifts toward those with the richest training data. Python and TypeScript pull further ahead.</p>
+        <div class="blog-meta">
+          <span>June 2025</span>
+          <span class="blog-read-time">6 min read</span>
+        </div>
+      </div>
+    </article>
+    <article class="blog-card">
+      <div class="blog-banner blog-banner-2">🧩</div>
+      <div class="blog-content">
+        <p class="blog-tag">WebAssembly</p>
+        <h3 class="blog-title">WASM 2.0: The Runtime That Runs Everything, Everywhere</h3>
+        <p class="blog-desc">WebAssembly's new threading, GC, and SIMD proposals mean that Rust, C++, and even Python can run in the browser at near-native speed. A new chapter begins.</p>
+        <div class="blog-meta">
+          <span>May 2025</span>
+          <span class="blog-read-time">8 min read</span>
+        </div>
+      </div>
+    </article>
+    <article class="blog-card">
+      <div class="blog-banner blog-banner-3">⚛️</div>
+      <div class="blog-content">
+        <p class="blog-tag">Quantum Computing</p>
+        <h3 class="blog-title">Qiskit, Q#, and Cirq: The Languages of Quantum Computing</h3>
+        <p class="blog-desc">Quantum programming languages are maturing rapidly. We explore the unique paradigms — superposition, entanglement, and measurement — that make them unlike anything before.</p>
+        <div class="blog-meta">
+          <span>April 2025</span>
+          <span class="blog-read-time">10 min read</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer aria-label="Site footer">
+  <div class="footer-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="wave-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.3"/>
+          <stop offset="50%" stop-color="#7B2FBE" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#FF006E" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="var(--bg-0)"/>
+      <path d="M0,50 C240,90 480,10 720,50 C960,90 1200,10 1440,50" fill="none" stroke="url(#wave-grad)" stroke-width="1.5" opacity="0.6">
+        <animate attributeName="d"
+          values="M0,50 C240,90 480,10 720,50 C960,90 1200,10 1440,50;
+                  M0,30 C240,70 480,30 720,30 C960,30 1200,70 1440,30;
+                  M0,50 C240,90 480,10 720,50 C960,90 1200,10 1440,50"
+          dur="8s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+  </div>
+  <div class="footer-inner">
+<div class="newsletter" data-observe>
+	      <h3>Contact Me</h3>
+	      <p>Have questions or want to collaborate? Feel free to reach out via email.</p>
+	      <div class="newsletter-form">
+	        <a href="mailto:ahamedkhalith13@gmail.com" class="btn-primary" style="border-radius:50px;cursor:none;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:100%;max-width:300px">
+	          Send Email to ahamedkhalith13@gmail.com →
+	        </a>
+	      </div>
+	    </div>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo-text">⟨ Universe of Code /⟩</div>
+        <p>An interactive encyclopedia of every programming language — from the first compilers to the AI-native future.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#languages">Language Grid</a></li>
+          <li><a href="#comparison">Fibonacci Showdown</a></li>
+          <li><a href="#timeline">History</a></li>
+          <li><a href="#stats">Statistics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Features</h4>
+        <ul>
+          <li><a href="#terminal-section">Terminal</a></li>
+          <li><a href="#stack">Tech Stack</a></li>
+          <li><a href="#blog">Blog</a></li>
+          <li><a href="#testimonials">Quotes</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">TIOBE Index</a></li>
+          <li><a href="#">Stack Overflow Survey</a></li>
+          <li><a href="#">GitHub Octoverse</a></li>
+          <li><a href="#">Rosetta Code</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 Universe of Code. Crafted with ♥ and 700+ languages.</p>
+      <div class="social-links" aria-label="Social links">
+        <a href="#" class="social-link" aria-label="GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+        <a href="#" class="social-link" aria-label="Twitter">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <a href="#" class="social-link" aria-label="Discord">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.057a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   SAFE HIGHLIGHT — works even if hljs CDN fails to load
+   ============================================================ */
+function safeHighlight(el) {
+  try {
+    if (typeof hljs !== 'undefined') hljs.highlightElement(el);
+  } catch(e) { /* ignore */ }
+}
+
+/* ============================================================
+   DATA — LANGUAGES
+   ============================================================ */
+const LANGUAGES = [
+  {
+    id: 'python', name: 'Python', icon: '🐍', paradigm: 'oop',
+    paradigmLabel: 'Multi-Paradigm',
+    use: 'AI/ML, web backends, data science, scripting',
+    difficulty: 1, year: 1991, creator: 'Guido van Rossum',
+    history: 'Created by Guido van Rossum at Centrum Wiskunde & Informatica in the Netherlands. First released in 1991, Python emphasizes code readability with significant indentation. Named after Monty Python, not the snake.',
+    features: ['Dynamic Typing','GC','REPL','Batteries Included','Duck Typing','List Comprehensions','Decorators','Generators'],
+    usecases: 'Machine learning (TensorFlow, PyTorch), web development (Django, FastAPI), data science (Pandas, NumPy), automation, and scientific computing.',
+    hello: 'print("Hello, World!")',
+    snippet: `def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a`
+  },
+  {
+    id: 'javascript', name: 'JavaScript', icon: '⚡', paradigm: 'scripting',
+    paradigmLabel: 'Multi-Paradigm',
+    use: 'Web frontend, Node.js backend, mobile (React Native)',
+    difficulty: 2, year: 1995, creator: 'Brendan Eich',
+    history: 'Brendan Eich created JavaScript in 10 days at Netscape in 1995. Originally called Mocha, then LiveScript, it was renamed JavaScript to capitalize on Java\'s popularity. Now the world\'s most widely used language.',
+    features: ['Prototype-Based','Event Loop','Closures','First-Class Functions','Async/Await','ESModules','WeakRefs','Proxies'],
+    usecases: 'Browser UIs, server-side apps with Node.js, mobile apps with React Native, desktop apps with Electron, and serverless functions.',
+    hello: 'console.log("Hello, World!");',
+    snippet: `function fibonacci(n) {
+  let [a, b] = [0, 1];
+  for (let i = 0; i < n; i++) {
+    [a, b] = [b, a + b];
+  }
+  return a;
+}`
+  },
+  {
+    id: 'rust', name: 'Rust', icon: '🦀', paradigm: 'systems',
+    paradigmLabel: 'Systems / Functional',
+    use: 'Systems programming, WebAssembly, embedded, CLI',
+    difficulty: 5, year: 2010, creator: 'Graydon Hoare (Mozilla)',
+    history: 'Graydon Hoare started Rust as a personal project in 2006. Mozilla sponsored it starting in 2009. First stable release in 2015. Has been the most loved language on Stack Overflow for 10 consecutive years.',
+    features: ['Ownership System','Zero-Cost Abstractions','No GC','Pattern Matching','Traits','Lifetimes','Fearless Concurrency','WASM First-Class'],
+    usecases: 'Operating systems (Linux kernel modules), game engines, WebAssembly, embedded systems, networking (Tokio), and replacing C/C++ for safety.',
+    hello: 'fn main() { println!("Hello, World!"); }',
+    snippet: `fn fibonacci(n: u64) -> u64 {
+    let (mut a, mut b) = (0, 1);
+    for _ in 0..n {
+        (a, b) = (b, a + b);
+    }
+    a
+}`
+  },
+  {
+    id: 'go', name: 'Go', icon: '🔵', paradigm: 'procedural',
+    paradigmLabel: 'Procedural / Concurrent',
+    use: 'Cloud infrastructure, APIs, CLIs, DevOps tooling',
+    difficulty: 2, year: 2009, creator: 'Robert Griesemer, Rob Pike, Ken Thompson',
+    history: 'Designed at Google in 2007 by legends Rob Pike and Ken Thompson (Unix, UTF-8). Announced in 2009 as an answer to slow compilation times and complexity in C++. Powers Docker, Kubernetes, and most of cloud-native infrastructure.',
+    features: ['Goroutines','Channels','Fast Compilation','Static Typing','Built-in Concurrency','Garbage Collection','Simple Syntax','gofmt'],
+    usecases: 'Cloud-native tooling (Docker, K8s), microservices, CLI tools, network servers, and high-throughput APIs.',
+    hello: 'package main\nimport "fmt"\nfunc main() { fmt.Println("Hello, World!") }',
+    snippet: `func fibonacci(n int) int {
+    a, b := 0, 1
+    for i := 0; i < n; i++ {
+        a, b = b, a+b
+    }
+    return a
+}`
+  },
+  {
+    id: 'typescript', name: 'TypeScript', icon: '🔷', paradigm: 'oop',
+    paradigmLabel: 'OOP / Functional',
+    use: 'Large-scale JavaScript applications, full-stack web',
+    difficulty: 3, year: 2012, creator: 'Anders Hejlsberg (Microsoft)',
+    difficulty: 3, year: 2012,
+    history: 'Created by Anders Hejlsberg at Microsoft. TypeScript is a typed superset of JavaScript that compiles to plain JavaScript. Adopted rapidly by Angular, then the entire JS ecosystem.',
+    features: ['Static Types','Generics','Interfaces','Type Inference','Decorators','Strict Mode','Union Types','Template Literals'],
+    usecases: 'Large-scale web applications, Node.js APIs, React/Vue/Angular frontends, monorepos, and anywhere JavaScript complexity grows.',
+    hello: 'console.log("Hello, World!");',
+    snippet: `function fibonacci(n: number): number {
+  let [a, b] = [0, 1];
+  for (let i = 0; i < n; i++) {
+    [a, b] = [b, a + b];
+  }
+  return a;
+}`
+  },
+  {
+    id: 'cpp', name: 'C++', icon: '⚙️', paradigm: 'oop',
+    paradigmLabel: 'OOP / Procedural / Generic',
+    use: 'Game engines, OS kernels, HFT, compilers, embedded',
+    difficulty: 5, year: 1985, creator: 'Bjarne Stroustrup',
+    history: 'Bjarne Stroustrup created C++ at Bell Labs in 1979 as "C with Classes." It added object-orientation to C. Standardized by ISO/IEC. Powers most AAA game engines, Google Chrome, and the Linux kernel drivers.',
+    features: ['RAII','Templates','Move Semantics','constexpr','Ranges','Coroutines (C++20)','Concepts','Zero Overhead'],
+    usecases: 'Game engines (Unreal), browsers (Chrome, Firefox), financial systems, operating systems, compilers, and real-time systems.',
+    hello: '#include<iostream>\nint main(){std::cout<<"Hello, World!";}',
+    snippet: `int fibonacci(int n) {
+    int a = 0, b = 1;
+    for (int i = 0; i < n; i++) {
+        int tmp = a + b;
+        a = b; b = tmp;
+    }
+    return a;
+}`
+  },
+  {
+    id: 'java', name: 'Java', icon: '☕', paradigm: 'oop',
+    paradigmLabel: 'Object-Oriented',
+    use: 'Enterprise backends, Android, big data',
+    difficulty: 3, year: 1995, creator: 'James Gosling (Sun Microsystems)',
+    history: 'James Gosling at Sun Microsystems created Java in 1991, first released in 1995 with the motto "Write Once, Run Anywhere." The JVM platform enabled a massive ecosystem. Android\'s primary language until Kotlin\'s rise.',
+    features: ['JVM','Generics','Interfaces','Streams API','Records (Java 16+)','Sealed Classes','Virtual Threads (21)','GC Options'],
+    usecases: 'Enterprise applications (Spring), Android development, big data (Hadoop/Spark), financial systems, and microservices.',
+    hello: 'public class Main { public static void main(String[] args) { System.out.println("Hello, World!"); } }',
+    snippet: `static int fibonacci(int n) {
+    int a = 0, b = 1;
+    for (int i = 0; i < n; i++) {
+        int tmp = a + b;
+        a = b; b = tmp;
+    }
+    return a;
+}`
+  },
+  {
+    id: 'kotlin', name: 'Kotlin', icon: '🎯', paradigm: 'oop',
+    paradigmLabel: 'OOP / Functional',
+    use: 'Android development, multiplatform mobile',
+    difficulty: 3, year: 2011, creator: 'JetBrains',
+    history: 'Developed by JetBrains and released in 2011. Google made it the preferred language for Android development in 2017. Kotlin Multiplatform allows sharing code between Android, iOS, and the web.',
+    features: ['Null Safety','Coroutines','Data Classes','Extension Functions','Smart Casts','DSL Support','Multiplatform','Interop with Java'],
+    usecases: 'Android apps, server-side development (Ktor), shared mobile business logic, and modern JVM applications.',
+    hello: 'fun main() { println("Hello, World!") }',
+    snippet: `fun fibonacci(n: Int): Long {
+    var a = 0L; var b = 1L
+    repeat(n) { val t = a + b; a = b; b = t }
+    return a
+}`
+  },
+  {
+    id: 'swift', name: 'Swift', icon: '🦅', paradigm: 'oop',
+    paradigmLabel: 'OOP / Protocol-Oriented',
+    use: 'iOS/macOS apps, Swift on Server',
+    difficulty: 3, year: 2014, creator: 'Chris Lattner (Apple)',
+    history: 'Designed by Chris Lattner at Apple starting in 2010, released at WWDC 2014. Created to replace Objective-C with a safer, more expressive language. Now open source under the Apache 2.0 license.',
+    features: ['Optionals','Protocol-Oriented','ARC Memory','Value Types','Async/Await','Actors','Result Builders','DocC'],
+    usecases: 'iOS, macOS, watchOS, tvOS development, and increasingly server-side (Vapor framework).',
+    hello: 'print("Hello, World!")',
+    snippet: `func fibonacci(_ n: Int) -> Int {
+    var (a, b) = (0, 1)
+    for _ in 0..<n { (a, b) = (b, a + b) }
+    return a
+}`
+  },
+  {
+    id: 'haskell', name: 'Haskell', icon: 'λ', paradigm: 'functional',
+    paradigmLabel: 'Pure Functional',
+    use: 'Financial systems, compilers, academic research',
+    difficulty: 5, year: 1990, creator: 'Committee (Haskell Curry namesake)',
+    history: 'Haskell was born from a 1987 committee of researchers who wanted a standard lazy functional language. Named after mathematician Haskell Curry. Influenced Rust, Scala, F#, Elm, and many modern languages.',
+    features: ['Pure Functions','Lazy Evaluation','Type Classes','Monads','Pattern Matching','Algebraic Data Types','Referential Transparency','QuickCheck'],
+    usecases: 'Compilers (GHC itself), financial modeling, theorem provers, cryptography, and whenever correctness matters most.',
+    hello: 'main = putStrLn "Hello, World!"',
+    snippet: `fibonacci :: Int -> Integer
+fibonacci n = fibs !! n
+  where fibs = 0 : 1 : zipWith (+) fibs (tail fibs)`
+  },
+  {
+    id: 'elixir', name: 'Elixir', icon: '💜', paradigm: 'functional',
+    paradigmLabel: 'Functional / Concurrent',
+    use: 'Real-time web, distributed systems, messaging',
+    difficulty: 3, year: 2012, creator: 'José Valim',
+    history: 'Created by José Valim in 2012, built on top of Erlang\'s battle-tested BEAM VM. Powers Phoenix framework and Discord (which serves millions of concurrent users with a tiny server footprint).',
+    features: ['BEAM VM','Actor Model','Pattern Matching','Macros','Hot Code Reload','Fault Tolerance','Pipelines','LiveView'],
+    usecases: 'Real-time chat (Discord), high-availability systems, Phoenix LiveView web apps, and distributed computing.',
+    hello: 'IO.puts("Hello, World!")',
+    snippet: `def fibonacci(n) do
+  Stream.unfold({0, 1}, fn {a, b} -> {a, {b, a + b}} end)
+  |> Enum.at(n)
+end`
+  },
+  {
+    id: 'ruby', name: 'Ruby', icon: '💎', paradigm: 'oop',
+    paradigmLabel: 'OOP / Scripting',
+    use: 'Web development (Rails), DevOps scripting',
+    difficulty: 2, year: 1995, creator: 'Yukihiro "Matz" Matsumoto',
+    history: '"Matz" wanted a language more powerful than Perl and more OO than Python. Released in 1995. Ruby on Rails (2004) by David Heinemeier Hansson revolutionized web development and influenced every web framework that followed.',
+    features: ['Blocks & Procs','Metaprogramming','Mixins','Open Classes','Operator Overloading','Symbols','Everything is Object','irb REPL'],
+    usecases: 'Web apps (GitHub was built on Rails), scripting, DevOps (Chef, Puppet), rapid prototyping.',
+    hello: 'puts "Hello, World!"',
+    snippet: `def fibonacci(n)
+  a, b = 0, 1
+  n.times { a, b = b, a + b }
+  a
+end`
+  },
+  {
+    id: 'c', name: 'C', icon: '🔧', paradigm: 'procedural',
+    paradigmLabel: 'Procedural / Imperative',
+    use: 'OS kernels, embedded systems, compilers, everything',
+    difficulty: 4, year: 1972, creator: 'Dennis Ritchie (Bell Labs)',
+    history: 'Dennis Ritchie developed C at Bell Labs between 1969 and 1973 to rewrite Unix. C is arguably the most influential language ever created — Linux, macOS, Windows, Python, Ruby, and PHP are all written in C.',
+    features: ['Manual Memory','Pointers','Preprocessor','Inline Assembly','Undefined Behavior','Portability','Speed','POSIX API'],
+    usecases: 'Operating systems (Linux kernel), embedded systems, game engines, interpreters for other languages, device drivers.',
+    hello: '#include<stdio.h>\nint main(){printf("Hello, World!\\n");}',
+    snippet: `int fibonacci(int n) {
+    int a = 0, b = 1, tmp;
+    for (int i = 0; i < n; i++) {
+        tmp = a + b; a = b; b = tmp;
+    }
+    return a;
+}`
+  },
+  {
+    id: 'csharp', name: 'C#', icon: '🔵', paradigm: 'oop',
+    paradigmLabel: 'OOP / Functional',
+    use: 'Windows apps, Unity games, enterprise, web (ASP.NET)',
+    difficulty: 3, year: 2000, creator: 'Anders Hejlsberg (Microsoft)',
+    history: 'Anders Hejlsberg designed C# at Microsoft for the .NET platform, released in 2000. Initially criticized as a Java copy, it has since innovated significantly with LINQ, async/await (which influenced JS), records, and more.',
+    features: ['LINQ','async/await','Records','Pattern Matching','Nullable References','Source Generators','Spans','Hot Reload'],
+    usecases: 'Unity 3D games, Windows applications, ASP.NET web APIs, enterprise software, Blazor WebAssembly.',
+    hello: 'Console.WriteLine("Hello, World!");',
+    snippet: `static int Fibonacci(int n) {
+    (int a, int b) = (0, 1);
+    for (int i = 0; i < n; i++)
+        (a, b) = (b, a + b);
+    return a;
+}`
+  },
+  {
+    id: 'r', name: 'R', icon: '📊', paradigm: 'functional',
+    paradigmLabel: 'Functional / Statistical',
+    use: 'Statistics, data analysis, bioinformatics, visualization',
+    difficulty: 3, year: 1993, creator: 'Ross Ihaka & Robert Gentleman',
+    history: 'Created at the University of Auckland in 1993 as an open-source implementation of the S language. The tidyverse ecosystem (ggplot2, dplyr) by Hadley Wickham brought R to a much wider audience.',
+    features: ['Vector Operations','Data Frames','CRAN Packages','ggplot2','RMarkdown','Shiny Apps','Statistical Models','Pipes (|>)'],
+    usecases: 'Statistical analysis, bioinformatics, data visualization, academic research, and financial modeling.',
+    hello: 'cat("Hello, World!\\n")',
+    snippet: `fibonacci <- function(n) {
+  a <- 0; b <- 1
+  for (i in seq_len(n)) {
+    tmp <- a + b; a <- b; b <- tmp
+  }
+  a
+}`
+  },
+  {
+    id: 'dart', name: 'Dart', icon: '🎯', paradigm: 'oop',
+    paradigmLabel: 'OOP / Async-First',
+    use: 'Flutter mobile/web/desktop UI',
+    difficulty: 2, year: 2011, creator: 'Lars Bak & Kasper Lund (Google)',
+    history: 'Designed at Google and announced in 2011. Gained massive adoption after Flutter was released in 2018 — a cross-platform UI toolkit that compiles Dart to native ARM, web, and desktop.',
+    features: ['Sound Null Safety','AOT/JIT Compile','Isolates','Flutter Integration','Strong Typing','Extension Methods','Async Streams','Tree Shaking'],
+    usecases: 'Flutter mobile apps (iOS + Android), Flutter web, Flutter desktop, and server-side with shelf.',
+    hello: 'void main() { print("Hello, World!"); }',
+    snippet: `int fibonacci(int n) {
+  var a = 0, b = 1;
+  for (var i = 0; i < n; i++) {
+    var t = a + b; a = b; b = t;
+  }
+  return a;
+}`
+  },
+  {
+    id: 'php', name: 'PHP', icon: '🐘', paradigm: 'scripting',
+    paradigmLabel: 'Scripting / OOP',
+    use: 'Web development (WordPress, Laravel, Facebook)',
+    difficulty: 2, year: 1994, creator: 'Rasmus Lerdorf',
+    history: 'Rasmus Lerdorf created PHP/FI (Personal Home Page / Forms Interpreter) in 1994 for his personal website. Now 78% of websites with known server-side languages use PHP. Laravel is a major modern framework.',
+    features: ['Dynamic Typing','Extensive Web APIs','Composer','Laravel Ecosystem','JIT (PHP 8.1+)','Fibers','Union Types','Named Args'],
+    usecases: 'Content management (WordPress), e-commerce, web APIs, and still the backbone of millions of websites worldwide.',
+    hello: '<?php echo "Hello, World!"; ?>',
+    snippet: `function fibonacci(int $n): int {
+    [$a, $b] = [0, 1];
+    for ($i = 0; $i < $n; $i++) {
+        [$a, $b] = [$b, $a + $b];
+    }
+    return $a;
+}`
+  },
+  {
+    id: 'lua', name: 'Lua', icon: '🌙', paradigm: 'scripting',
+    paradigmLabel: 'Scripting / Procedural',
+    use: 'Game scripting (Roblox, WoW), embedded configs',
+    difficulty: 2, year: 1993, creator: 'PUC-Rio (Roberto Ierusalimschy)',
+    history: 'Designed by a team at the Pontifical Catholic University of Rio de Janeiro (PUC-Rio). One of the fastest scripting languages. Powers Roblox (with 60M+ users) and was the scripting engine for World of Warcraft addons.',
+    features: ['Tables as Everything','Metatables','Coroutines','LuaJIT','Small Footprint','Embeddable','First-Class Functions','Multiple Returns'],
+    usecases: 'Game modding and scripting (Roblox, Minecraft, WoW), embedded configs (nginx, Redis), IoT with NodeMCU.',
+    hello: 'print("Hello, World!")',
+    snippet: `function fibonacci(n)
+    local a, b = 0, 1
+    for i = 1, n do
+        a, b = b, a + b
+    end
+    return a
+end`
+  },
+  {
+    id: 'perl', name: 'Perl', icon: '🐪', paradigm: 'scripting',
+    paradigmLabel: 'Scripting / OOP',
+    use: 'Text processing, sysadmin, bioinformatics',
+    difficulty: 4, year: 1987, creator: 'Larry Wall',
+    history: 'Larry Wall released Perl in 1987. Known as "the duct tape of the Internet," Perl dominated web scripting in the 1990s (CGI era). Still a powerhouse for text manipulation and the original "glue language."',
+    features: ['Regex Built-In','CPAN Modules','References','Context Sensitivity','Here-Docs','Formats','Prototypes','Grep/Map'],
+    usecases: 'System administration, bioinformatics (BioPerl), log processing, legacy web applications (CGI/Mason).',
+    hello: 'print "Hello, World!\\n";',
+    snippet: `sub fibonacci {
+    my ($n) = @_;
+    my ($a, $b) = (0, 1);
+    for (1..$n) { ($a, $b) = ($b, $a + $b) }
+    return $a;
+}`
+  },
+  {
+    id: 'zig', name: 'Zig', icon: '⚡', paradigm: 'systems',
+    paradigmLabel: 'Systems / Imperative',
+    use: 'Systems programming, C interop, WebAssembly',
+    difficulty: 4, year: 2016, creator: 'Andrew Kelley',
+    history: 'Andrew Kelley started Zig in 2015 as a simpler, more explicit alternative to C. It can compile C and C++ code and aims to replace C for system-level programming. Gained fame when Bun (JS runtime) was built with it.',
+    features: ['No Hidden Control Flow','comptime','No Undefined Behavior','C ABI Compatible','Error Unions','Arenas','Cross-Compilation','No Macros'],
+    usecases: 'Systems programming, replacing C in codebases, compiling C/C++, WebAssembly, and building dev tooling (Bun).',
+    hello: 'const std = @import("std");\npub fn main() !void { try std.io.getStdOut().writer().print("Hello, World!\\n", .{}); }',
+    snippet: `fn fibonacci(n: u64) u64 {
+    var a: u64 = 0;
+    var b: u64 = 1;
+    var i: u64 = 0;
+    while (i < n) : (i += 1) {
+        const t = a + b;
+        a = b; b = t;
+    }
+    return a;
+}`
+  },
+  {
+    id: 'assembly', name: 'Assembly', icon: '🔩', paradigm: 'procedural',
+    paradigmLabel: 'Low-Level / Imperative',
+    use: 'OS kernels, bootloaders, performance-critical code, reverse engineering',
+    difficulty: 5, year: 1949, creator: 'Kathleen Booth (first assembler)',
+    history: 'Assembly languages were invented alongside the first computers. Kathleen Booth wrote the first assembler in 1947 for the ARC2 computer. Every processor architecture (x86, ARM, RISC-V) has its own assembly dialect.',
+    features: ['Direct CPU Control','No Abstraction','Registers','Memory Addresses','Jump Instructions','System Calls','Inline in C/C++','Architecture-Specific'],
+    usecases: 'Bootloaders, OS kernels, firmware, hardware drivers, cryptographic implementations, and performance-critical inner loops.',
+    hello: 'section .data\n  msg db "Hello, World!", 10\nsection .text\n  global _start\n_start:\n  mov rax, 1\n  mov rdi, 1\n  mov rsi, msg\n  mov rdx, 14\n  syscall',
+    snippet: `; x86-64 Linux — Fibonacci(n) in rdi, result in rax
+fibonacci:
+    xor eax, eax    ; a = 0
+    mov ecx, 1      ; b = 1
+.loop:
+    test rdi, rdi
+    jz .done
+    add rax, rcx    ; a += b (swap trick)
+    xchg rax, rcx   ; swap a, b
+    dec rdi
+    jmp .loop
+.done:
+    ret`
+  }
+];
+
+/* ============================================================
+   DATA — FIBONACCI CODE
+   ============================================================ */
+const FIB_CODE = [
+  { lang: 'Python', code: `def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+print(fib(10))  # 55` },
+  { lang: 'JavaScript', code: `function fib(n) {
+  let [a, b] = [0, 1];
+  for (let i = 0; i < n; i++)
+    [a, b] = [b, a + b];
+  return a;
+}
+console.log(fib(10)); // 55` },
+  { lang: 'Rust', code: `fn fib(n: u64) -> u64 {
+    let (mut a, mut b) = (0, 1);
+    for _ in 0..n {
+        (a, b) = (b, a + b);
+    }
+    a
+}
+fn main() { println!("{}", fib(10)); }` },
+  { lang: 'Go', code: `package main
+import "fmt"
+func fib(n int) int {
+    a, b := 0, 1
+    for i := 0; i < n; i++ {
+        a, b = b, a+b
+    }
+    return a
+}
+func main() { fmt.Println(fib(10)) }` },
+  { lang: 'C++', code: `#include <iostream>
+int fib(int n) {
+    int a = 0, b = 1;
+    for (int i = 0; i < n; i++) {
+        auto t = a + b; a = b; b = t;
+    }
+    return a;
+}
+int main() { std::cout << fib(10); }` },
+  { lang: 'Java', code: `public class Fib {
+  static long fib(int n) {
+    long a = 0, b = 1;
+    for (int i = 0; i < n; i++) {
+      long t = a + b; a = b; b = t;
+    }
+    return a;
+  }
+  public static void main(String[] a) {
+    System.out.println(fib(10));
+  }
+}` },
+  { lang: 'Haskell', code: `fibs :: [Integer]
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+
+fib :: Int -> Integer
+fib n = fibs !! n
+
+main :: IO ()
+main = print (fib 10)` },
+  { lang: 'Elixir', code: `defmodule Fib do
+  def fib(n) do
+    Stream.unfold({0, 1}, fn {a, b} ->
+      {a, {b, a + b}}
+    end) |> Enum.at(n)
+  end
+end
+IO.puts Fib.fib(10)` },
+  { lang: 'Ruby', code: `def fib(n)
+  a, b = 0, 1
+  n.times { a, b = b, a + b }
+  a
+end
+puts fib(10)  # 55` },
+  { lang: 'Swift', code: `func fib(_ n: Int) -> Int {
+    var (a, b) = (0, 1)
+    for _ in 0..<n {
+        (a, b) = (b, a + b)
+    }
+    return a
+}
+print(fib(10))` },
+  { lang: 'Kotlin', code: `fun fib(n: Int): Long {
+    var a = 0L; var b = 1L
+    repeat(n) {
+        val t = a + b; a = b; b = t
+    }
+    return a
+}
+fun main() { println(fib(10)) }` },
+  { lang: 'TypeScript', code: `function fib(n: number): number {
+  let [a, b] = [0, 1];
+  for (let i = 0; i < n; i++)
+    [a, b] = [b, a + b];
+  return a;
+}
+console.log(fib(10)); // 55` },
+  { lang: 'C#', code: `static long Fib(int n) {
+    (long a, long b) = (0, 1);
+    for (int i = 0; i < n; i++)
+        (a, b) = (b, a + b);
+    return a;
+}
+Console.WriteLine(Fib(10));` },
+  { lang: 'Zig', code: `const std = @import("std");
+fn fib(n: u64) u64 {
+    var a: u64 = 0; var b: u64 = 1;
+    var i: u64 = 0;
+    while (i < n) : (i += 1) {
+        const t = a + b; a = b; b = t;
+    }
+    return a;
+}
+pub fn main() !void {
+    std.debug.print("{}\n", .{fib(10)});
+}` },
+  { lang: 'Lua', code: `function fib(n)
+    local a, b = 0, 1
+    for i = 1, n do
+        a, b = b, a + b
+    end
+    return a
+end
+print(fib(10))` },
+  { lang: 'R', code: `fib <- function(n) {
+  a <- 0; b <- 1
+  for (i in seq_len(n)) {
+    tmp <- a + b
+    a <- b; b <- tmp
+  }
+  a
+}
+cat(fib(10), "\n")` },
+  { lang: 'Dart', code: `int fib(int n) {
+  var a = 0, b = 1;
+  for (var i = 0; i < n; i++) {
+    var t = a + b; a = b; b = t;
+  }
+  return a;
+}
+void main() => print(fib(10));` },
+  { lang: 'Assembly', code: `; x86-64 Linux, fib(10) = 55
+section .text
+global _start
+fib:          ; n in rdi, result in rax
+    xor eax, eax
+    mov ecx, 1
+.loop:
+    test rdi, rdi
+    jz   .done
+    add  rax, rcx
+    xchg rax, rcx
+    dec  rdi
+    jmp  .loop
+.done:
+    ret` }
+];
+
+/* ============================================================
+   DATA — TIMELINE
+   ============================================================ */
+const TIMELINE = [
+  { year: '1952', title: 'Autocode', desc: 'Alick Glennie creates Autocode for the Manchester Mark 1 — arguably the first compiled language. Grace Hopper\'s A-0 follows the same year.' },
+  { year: '1957', title: 'FORTRAN', desc: 'IBM\'s team led by John Backus releases FORTRAN (Formula Translation). The first high-level language in widespread use. Scientific computing runs on it to this day.' },
+  { year: '1958', title: 'LISP & ALGOL', desc: 'John McCarthy creates LISP at MIT, the father of functional programming and AI. ALGOL introduces block structure and lexical scoping — influencing almost every language after.' },
+  { year: '1959', title: 'COBOL', desc: 'Grace Hopper champions COBOL for business applications. Estimated $3 trillion in daily commerce still runs on COBOL systems worldwide.' },
+  { year: '1964', title: 'BASIC', desc: 'John Kemeny and Thomas Kurtz at Dartmouth create BASIC to democratize computing. Bill Gates and Paul Allen write a BASIC interpreter for the Altair 8800 — Microsoft begins.' },
+  { year: '1970', title: 'Pascal & Prolog', desc: 'Niklaus Wirth\'s Pascal teaches structured programming to generations of students. Prolog introduces logic programming — the foundation of early AI systems.' },
+  { year: '1972', title: 'C & Smalltalk', desc: 'Dennis Ritchie creates C at Bell Labs to rewrite Unix. Alan Kay\'s Smalltalk at Xerox PARC invents object-oriented programming as we know it.' },
+  { year: '1980', title: 'Ada & ML', desc: 'Ada, named after Ada Lovelace, becomes the US DoD\'s safety-critical language. ML introduces type inference and pattern matching — ancestor of Haskell and OCaml.' },
+  { year: '1983', title: 'C++ & Objective-C', desc: 'Bjarne Stroustrup adds OOP to C. Brad Cox creates Objective-C, later the language of macOS and iOS until Swift.' },
+  { year: '1987', title: 'Perl & Erlang', desc: 'Larry Wall\'s Perl becomes the "duct tape of the Internet." Ericsson\'s Erlang introduces actor-model concurrency for telecom systems with nine-nines uptime.' },
+  { year: '1990', title: 'Haskell', desc: 'A committee of researchers standardizes Haskell — the pure functional language that has shaped type system research for decades.' },
+  { year: '1991', title: 'Python', desc: 'Guido van Rossum releases Python, prioritizing readability. Would grow to become the world\'s most popular language by 2023 on virtually every index.' },
+  { year: '1993', title: 'R & Lua', desc: 'R brings statistics to programmers. Lua becomes the fastest embeddable scripting language, powering games and applications globally.' },
+  { year: '1995', title: 'Java, JS, Ruby, PHP', desc: 'The most consequential year in language history: Java (write once, run anywhere), JavaScript (the web\'s soul), Ruby (programmer happiness), and PHP (powering the web) all debut.' },
+  { year: '2000', title: 'C# & D', desc: 'Microsoft releases C# and the .NET platform. Walter Bright\'s D language attempts to fix C++\'s rough edges with a modern approach.' },
+  { year: '2003', title: 'Scala & Groovy', desc: 'Martin Odersky\'s Scala merges OOP and functional programming on the JVM. Groovy brings dynamic scripting to Java developers.' },
+  { year: '2007', title: 'Clojure', desc: 'Rich Hickey creates Clojure — a modern Lisp for the JVM with persistent data structures and first-class concurrency primitives.' },
+  { year: '2009', title: 'Go', desc: 'Google releases Go, designed by C and Unix legends. Simple, fast compilation, built-in concurrency. Powers Docker, Kubernetes, and cloud-native infrastructure.' },
+  { year: '2010', title: 'Rust', desc: 'Mozilla sponsors Rust, created by Graydon Hoare. Guarantees memory safety without garbage collection. Would become the most loved language for 10 consecutive years.' },
+  { year: '2011', title: 'Kotlin, Dart, Elixir', desc: 'JetBrains\' Kotlin modernizes the JVM. Google\'s Dart prepares for Flutter. José Valim\'s Elixir brings Ruby syntax to Erlang\'s battle-tested BEAM VM.' },
+  { year: '2014', title: 'Swift & Crystal', desc: 'Apple\'s Chris Lattner releases Swift at WWDC — Objective-C\'s successor for the Apple ecosystem. Crystal brings Ruby syntax with C speed.' },
+  { year: '2015', title: 'Rust 1.0 & TypeScript', desc: 'Rust reaches stable 1.0. TypeScript gains massive adoption with Angular 2. The two languages that define the 2020s start their meteoric rise.' },
+  { year: '2016', title: 'Zig', desc: 'Andrew Kelley begins Zig as a simpler, safer C. Gains fame when the Bun JavaScript runtime is built in Zig, outperforming Node.js dramatically.' },
+  { year: '2022', title: 'Mojo', desc: 'Modular\'s Mojo combines Python syntax with systems-level performance using MLIR. Claims 68,000x speedup over Python for AI workloads.' },
+  { year: '2025', title: 'The AI Era', desc: 'LLMs write 40%+ of new code. Languages optimized for AI compilation (Mojo, JAX-native DSLs) emerge. Quantum languages (Q#, Qiskit) mature. The universe of code keeps expanding.' }
+];
+
+/* ============================================================
+   DATA — TERMINAL COMMANDS
+   ============================================================ */
+const TERM_COMMANDS = {
+  help: `Available commands:
+  <span class="term-output info">languages</span>    — List all featured programming languages
+  <span class="term-output info">fib &lt;lang&gt;</span>   — Show Fibonacci in a language (e.g. fib python)
+  <span class="term-output info">history</span>      — Key moments in language history
+  <span class="term-output info">stats</span>        — Programming language statistics
+  <span class="term-output info">rank</span>         — Top languages by popularity (2025)
+  <span class="term-output info">about</span>        — About this project
+  <span class="term-output info">clear</span>        — Clear terminal
+  <span class="term-output info">exit</span>         — (doesn't work, nice try 😄)`,
+
+  languages: `<span class="term-output success">Featured Languages (24):</span>
+Python • JavaScript • TypeScript • Rust • Go • C • C++
+Java • C# • Kotlin • Swift • Haskell • Elixir • Ruby
+R • Dart • PHP • Lua • Perl • Zig • Assembly • Erlang
+Julia • Clojure`,
+
+  history: `<span class="term-output success">Key Moments:</span>
+1952  → Autocode (first compiler, Alick Glennie)
+1957  → FORTRAN (IBM, John Backus)
+1972  → C (Dennis Ritchie, Bell Labs)
+1983  → C++ (Bjarne Stroustrup)
+1991  → Python (Guido van Rossum)
+1995  → Java, JavaScript, Ruby, PHP all born
+2009  → Go (Google)
+2010  → Rust (Mozilla/Graydon Hoare)
+2014  → Swift (Apple/Chris Lattner)
+2025  → AI writes ~40% of code`,
+
+  stats: `<span class="term-output success">2025 Programming Statistics:</span>
+Total languages ever created:   <span class="term-output warn">~700+</span>
+Most popular (TIOBE 2025):     <span class="term-output info">Python</span>
+Fastest growing:                <span class="term-output info">Rust, TypeScript</span>
+Most loved (SO Survey):         <span class="term-output info">Rust (10 yrs running)</span>
+Active developers worldwide:    <span class="term-output warn">~30M</span>
+GitHub repos created today:     <span class="term-output warn">~100,000</span>`,
+
+  rank: `<span class="term-output success">TIOBE Index — June 2025:</span>
+ 1. Python       🐍  14.5%
+ 2. C            🔧   9.8%
+ 3. C++          ⚙️   9.2%
+ 4. Java         ☕   8.1%
+ 5. JavaScript   ⚡   6.3%
+ 6. C#           🔵   4.8%
+ 7. Go           🔵   3.9%
+ 8. TypeScript   🔷   3.2%
+ 9. Rust         🦀   2.8%
+10. Kotlin       🎯   2.4%`,
+
+  about: `<span class="term-output success">Universe of Code</span>
+Version:     1.0.0
+Built with:  Vanilla HTML/CSS/JS
+Languages:   24 featured, 700+ referenced
+Purpose:     Celebrating every programming language
+Author:      Built with ❤️ for developers everywhere
+
+"A language that doesn't affect the way you think about
+programming is not worth knowing." — Alan J. Perlis`,
+
+  exit: `<span class="term-output error">Nice try! You can't escape the Universe of Code. 🌌</span>
+<span class="term-output">Type <span style="color:var(--cyan)">help</span> for available commands.</span>`,
+
+  clear: '__CLEAR__'
+};
+
+/* ============================================================
+   CANVAS — STARFIELD / PARTICLE NETWORK
+   ============================================================ */
+function initCanvas() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.r = Math.random() * 1.5 + 0.3;
+      this.alpha = Math.random() * 0.6 + 0.1;
+      const colors = ['#00F0FF', '#7B2FBE', '#FF006E', '#ffffff'];
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.alpha;
+      ctx.fill();
+    }
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: 120 }, () => new Particle());
+  }
+
+  let mouseX = -9999, mouseY = -9999;
+  window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+  function drawConnections() {
+    const threshold = 100;
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < threshold) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(0,240,255,${0.08 * (1 - dist/threshold)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+      // Mouse connections
+      const mdx = particles[i].x - mouseX;
+      const mdy = particles[i].y - mouseY;
+      const mdist = Math.sqrt(mdx*mdx + mdy*mdy);
+      if (mdist < 150) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(mouseX, mouseY);
+        ctx.strokeStyle = `rgba(123,47,190,${0.3 * (1 - mdist/150)})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawConnections();
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  init();
+  animate();
+}
+
+/* ============================================================
+   LANGUAGE GRID
+   ============================================================ */
+function buildLangGrid() {
+  const grid = document.getElementById('lang-grid');
+  grid.innerHTML = LANGUAGES.map(lang => `
+    <div
+      class="lang-card"
+      role="listitem"
+      tabindex="0"
+      aria-label="${lang.name} — ${lang.paradigmLabel}"
+      data-paradigm="${lang.paradigm}"
+      data-name="${lang.name.toLowerCase()}"
+      onclick="openModal('${lang.id}')"
+      onkeydown="if(event.key==='Enter'||event.key===' ')openModal('${lang.id}')"
+    >
+      <div class="lang-card-tag">${lang.paradigmLabel}</div>
+      <div class="lang-card-front">
+        <span class="lang-icon" aria-hidden="true">${lang.icon}</span>
+        <div class="lang-name">${lang.name}</div>
+        <div class="lang-paradigm">${lang.paradigmLabel} · ${lang.year}</div>
+        <div class="lang-use">${lang.use}</div>
+        <div class="lang-difficulty" aria-label="Difficulty ${lang.difficulty} out of 5">
+          ${[1,2,3,4,5].map(i=>`<div class="diff-dot ${i<=lang.difficulty?'filled':''}" aria-hidden="true"></div>`).join('')}
+          <span class="lang-difficulty-label">${['','Beginner','Easy','Moderate','Hard','Expert'][lang.difficulty]}</span>
+        </div>
+      </div>
+      <div class="lang-code-preview" aria-hidden="true">
+        <pre><code class="language-plaintext">${escHtml(lang.snippet)}</code></pre>
+      </div>
+    </div>
+  `).join('');
+  setTimeout(() => {
+    grid.querySelectorAll('pre code').forEach(el => safeHighlight(el));
+  }, 150);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================================================
+   FILTER & SEARCH
+   ============================================================ */
+function initFilter() {
+  const pills = document.querySelectorAll('.filter-pill');
+  const search = document.getElementById('lang-search');
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  function applyFilter() {
+    document.querySelectorAll('.lang-card').forEach(card => {
+      const paradigm = card.dataset.paradigm;
+      const name = card.dataset.name;
+      const matchFilter = currentFilter === 'all' || paradigm === currentFilter;
+      const matchSearch = name.includes(currentSearch);
+      card.style.display = matchFilter && matchSearch ? '' : 'none';
+    });
+  }
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed','false'); });
+      pill.classList.add('active'); pill.setAttribute('aria-pressed','true');
+      currentFilter = pill.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  search.addEventListener('input', e => {
+    currentSearch = e.target.value.toLowerCase().trim();
+    applyFilter();
+  });
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openModal(id) {
+  const lang = LANGUAGES.find(l => l.id === id);
+  if (!lang) return;
+  document.getElementById('modal-icon').textContent = lang.icon;
+  document.getElementById('modal-title').textContent = lang.name;
+  document.getElementById('modal-paradigm').textContent = `${lang.paradigmLabel} · Born ${lang.year}`;
+  document.getElementById('modal-history').textContent = lang.history;
+  document.getElementById('modal-creator').textContent = lang.creator;
+  document.getElementById('modal-usecases').textContent = lang.usecases;
+  const featuresEl = document.getElementById('modal-features');
+  featuresEl.innerHTML = lang.features.map(f=>`<span class="modal-tag">${f}</span>`).join('');
+  const helloEl = document.getElementById('modal-hello-code');
+  helloEl.textContent = lang.hello;
+  helloEl.removeAttribute('data-highlighted');
+  safeHighlight(helloEl);
+  const overlay = document.getElementById('lang-modal');
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden','false');
+  document.getElementById('modal-close').focus();
+}
+
+function closeModal() {
+  const overlay = document.getElementById('lang-modal');
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden','true');
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('lang-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+/* ============================================================
+   FIBONACCI CAROUSEL
+   ============================================================ */
+function buildFibCarousel() {
+  const carousel = document.getElementById('fib-carousel');
+  if (!carousel) return;
+
+  carousel.innerHTML = FIB_CODE.map(item => `
+    <div class="fib-card" role="listitem" aria-label="Fibonacci in ${item.lang}">
+      <div class="fib-card-header">
+        <div class="dots">
+          <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+        </div>
+        <span class="fib-lang-badge">${item.lang}</span>
+      </div>
+      <pre><code>${escHtml(item.code)}</code></pre>
+    </div>
+  `).join('');
+
+  // Highlight after a tiny delay to ensure hljs is ready
+  setTimeout(() => {
+    carousel.querySelectorAll('pre code').forEach(el => safeHighlight(el));
+  }, 100);
+
+  const prev = document.getElementById('carousel-prev');
+  const next = document.getElementById('carousel-next');
+  if (prev) prev.addEventListener('click', () => { carousel.scrollBy({ left: -360, behavior: 'smooth' }); });
+  if (next) next.addEventListener('click', () => { carousel.scrollBy({ left: 360, behavior: 'smooth' }); });
+}
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+function buildTimeline() {
+  const track = document.getElementById('timeline-track');
+  track.innerHTML = TIMELINE.map(item => `
+    <div class="tl-item" data-tl>
+      <div class="tl-dot" aria-hidden="true"></div>
+      <div class="tl-year">${item.year}</div>
+      <div class="tl-title">${item.title}</div>
+      <p class="tl-desc">${item.desc}</p>
+    </div>
+  `).join('');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('[data-tl]').forEach(el => observer.observe(el));
+}
+
+/* ============================================================
+   COUNTER ANIMATION
+   ============================================================ */
+function initCounters() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.counter').forEach(counter => {
+          const target = parseInt(counter.dataset.target);
+          const start = performance.now();
+          const duration = 2000;
+          function update(now) {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 4);
+            counter.textContent = Math.round(eased * target).toLocaleString();
+            if (p < 1) requestAnimationFrame(update);
+          }
+          requestAnimationFrame(update);
+        });
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.stats-grid').forEach(el => observer.observe(el));
+}
+
+/* ============================================================
+   TERMINAL
+   ============================================================ */
+function initTerminal() {
+  const body = document.getElementById('terminal-body');
+  const input = document.getElementById('terminal-input');
+  const history = [];
+  let histIdx = -1;
+
+  function print(html, type = '') {
+    const line = document.createElement('div');
+    line.className = 'term-line';
+    line.innerHTML = `<span class="term-output ${type}">${html}</span>`;
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function printWelcome() {
+    body.innerHTML = `
+      <div class="term-line"><span class="term-output info">╔══════════════════════════════════════════╗</span></div>
+      <div class="term-line"><span class="term-output info">║     Universe of Code — Terminal v1.0     ║</span></div>
+      <div class="term-line"><span class="term-output info">╚══════════════════════════════════════════╝</span></div>
+      <div class="term-line"><span class="term-output">Type <span style="color:var(--cyan)">help</span> to see available commands.</span></div>
+      <div class="term-line"></div>
+    `;
+  }
+  printWelcome();
+
+  function execCommand(cmd) {
+    const parts = cmd.trim().split(/\s+/);
+    const base = parts[0].toLowerCase();
+    const arg = parts.slice(1).join(' ').toLowerCase();
+
+    const line = document.createElement('div');
+    line.className = 'term-line';
+    line.innerHTML = `<span class="term-prompt">visitor@universe:~$</span> <span class="term-cmd">${escHtml(cmd)}</span>`;
+    body.appendChild(line);
+
+    if (!base) { body.scrollTop = body.scrollHeight; return; }
+
+    if (base === 'clear') { body.innerHTML = ''; printWelcome(); return; }
+    if (base === 'fib') {
+      const lang = LANGUAGES.find(l => l.id === arg || l.name.toLowerCase() === arg);
+      if (lang) {
+        print(`<strong style="color:var(--cyan)">${lang.name} Fibonacci:</strong>`);
+        print(`<pre style="margin:0.5rem 0;background:rgba(0,0,0,0.3);padding:0.75rem;border-radius:8px;font-size:0.78rem;overflow-x:auto">${escHtml(lang.snippet)}</pre>`);
+      } else {
+        const avail = LANGUAGES.map(l=>l.name.toLowerCase()).join(', ');
+        print(`Language "${arg}" not found. Try: ${avail}`, 'error');
+      }
+      body.scrollTop = body.scrollHeight;
+      return;
+    }
+
+    const response = TERM_COMMANDS[base];
+    if (response) {
+      print(response);
+    } else {
+      print(`Command not found: <strong>${escHtml(base)}</strong>. Type <span style="color:var(--cyan)">help</span>.`, 'error');
+    }
+    body.scrollTop = body.scrollHeight;
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = input.value;
+      history.unshift(val);
+      histIdx = -1;
+      execCommand(val);
+      input.value = '';
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      histIdx = Math.min(histIdx + 1, history.length - 1);
+      input.value = history[histIdx] || '';
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      histIdx = Math.max(histIdx - 1, -1);
+      input.value = histIdx >= 0 ? history[histIdx] : '';
+    }
+  });
+}
+
+/* ============================================================
+   TYPING EFFECT
+   ============================================================ */
+function initTyping() {
+  const el = document.getElementById('typed-text');
+  const phrases = [
+    'Python for AI.', 'Rust for safety.', 'Go for scale.',
+    'JavaScript everywhere.', 'Haskell for purity.', 'C for power.',
+    'Zig for the future.', 'Assembly for control.', 'Elixir for concurrency.',
+    'All languages. One universe.'
+  ];
+  let pi = 0, ci = 0, deleting = false;
+
+  function type() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      el.textContent = phrase.slice(0, ci + 1);
+      ci++;
+      if (ci === phrase.length) {
+        deleting = true;
+        setTimeout(type, 2000);
+        return;
+      }
+    } else {
+      el.textContent = phrase.slice(0, ci - 1);
+      ci--;
+      if (ci === 0) {
+        deleting = false;
+        pi = (pi + 1) % phrases.length;
+      }
+    }
+    setTimeout(type, deleting ? 40 : 70);
+  }
+  type();
+}
+
+/* ============================================================
+   SCROLL EFFECTS
+   ============================================================ */
+function initScrollEffects() {
+  const progress = document.getElementById('scroll-progress');
+  const fab = document.getElementById('fab');
+  const progCircle = fab.querySelector('circle.prog');
+  const circumference = 144; // 2π × r(23)
+
+  function onScroll() {
+    const scrolled = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = scrolled / maxScroll;
+
+    progress.style.width = (pct * 100) + '%';
+    progCircle.style.strokeDashoffset = circumference * (1 - pct);
+
+    fab.classList.toggle('visible', scrolled > 400);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+}
+
+/* ============================================================
+   INTERSECTION OBSERVER — GENERAL REVEAL
+   ============================================================ */
+function initReveal() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('[data-observe]').forEach(el => observer.observe(el));
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+function initCursor() {
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let rx = 0, ry = 0, mx = 0, my = 0;
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  function moveCursor() {
+    dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(moveCursor);
+  }
+  moveCursor();
+
+  document.addEventListener('mousedown', () => {
+    dot.style.transform = 'translate(-50%,-50%) scale(0.6)';
+    ring.style.transform = 'translate(-50%,-50%) scale(0.8)';
+  });
+  document.addEventListener('mouseup', () => {
+    dot.style.transform = 'translate(-50%,-50%) scale(1)';
+    ring.style.transform = 'translate(-50%,-50%) scale(1)';
+  });
+
+  document.addEventListener('mouseleave', () => { dot.style.opacity='0'; ring.style.opacity='0'; });
+  document.addEventListener('mouseenter', () => { dot.style.opacity='1'; ring.style.opacity='0.6'; });
+}
+
+/* ============================================================
+   THEME TOGGLE
+   ============================================================ */
+function initTheme() {
+  const btn = document.getElementById('theme-toggle');
+  let dark = true;
+  btn.addEventListener('click', () => {
+    dark = !dark;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.textContent = dark ? '🌙' : '☀️';
+    btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Configure hljs FIRST before any highlighting calls
+  if (typeof hljs !== 'undefined') {
+    hljs.configure({ ignoreUnescapedHTML: true });
+  }
+
+  initCanvas();
+  buildLangGrid();
+  initFilter();
+  buildFibCarousel();
+  buildTimeline();
+  initCounters();
+  initTerminal();
+  initTyping();
+  initScrollEffects();
+  initReveal();
+  initCursor();
+  initTheme();
+});
+</script>
+</body>
+</html>
